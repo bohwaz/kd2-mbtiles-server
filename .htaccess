@@ -1,0 +1,13 @@
+Options -Indexes -MultiViews
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ mbtiles-server.php [QSA,L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    ErrorDocument 404 /mbtiles-server.php
+</IfModule>
+
