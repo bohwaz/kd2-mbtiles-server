@@ -51,7 +51,7 @@ else
 	error('No valid URL found.');
 }
 
-if (!preg_match('!(\d+)/(\d+)/(\d+)(?:\.\w+)?$!', $url, $match))
+if (!preg_match('!(\d+)/(\d+)/(\d+)(?:\.\w+)?$!i', $url, $match))
 {
 	error('Invalid tile URL.');
 }
@@ -59,8 +59,6 @@ if (!preg_match('!(\d+)/(\d+)/(\d+)(?:\.\w+)?$!', $url, $match))
 $z = (int)$match[1];
 $x = (int)$match[2];
 $y = (int)$match[3];
-
-$y = pow(2, $z) - 1 - $y;
 
 $request = $z . '/' . $x . '/' . $y;
 
@@ -84,12 +82,6 @@ if (ENABLE_LOCAL_CACHE)
 		{
 			header('X-Sendfile: ' . $local_cache_file . '.' . $format);
 		}
-		else if (ENABLE_X_ACCEL)
-		{
-			// Relative path for nginx, we assume the vhost is 
-			$file = str_replace(LOCAL_CACHE_DIR, '', $local_cache_file);
-			header('X-Accel-Redirect: ' . $file . '.' . $format);
-		}
 		else
 		{
 			img_header($format);
@@ -103,9 +95,11 @@ $not_found = false;
 
 $db = new \SQLite3(LOCAL_MBTILES_FILE, SQLITE3_OPEN_READONLY);
 
+$y_real = pow(2, $z) - 1 - $y;
+
 $rowid = $db->querySingle('SELECT rowid FROM tiles 
 	WHERE zoom_level = ' . $z . ' AND tile_column = ' . $x . ' 
-	AND tile_row = ' . $y . ';');
+	AND tile_row = ' . $y_real . ';');
 
 if (!$rowid)
 {
