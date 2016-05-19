@@ -84,6 +84,12 @@ if (ENABLE_LOCAL_CACHE)
 		{
 			header('X-Sendfile: ' . $local_cache_file . '.' . $format);
 		}
+		else if (ENABLE_X_ACCEL)
+		{
+			// Relative path for nginx, we assume the vhost is 
+			$file = str_replace(LOCAL_CACHE_DIR, '', $local_cache_file);
+			header('X-Accel-Redirect: ' . $file . '.' . $format);
+		}
 		else
 		{
 			img_header($format);
@@ -103,22 +109,9 @@ $rowid = $db->querySingle('SELECT rowid FROM tiles
 
 if (!$rowid)
 {
-	// Empty transparent 256x256 PNG
-	$not_found = '
-		iVBORw0KGgoAAAANSUhEUgAAAQAAAAEAAQMAAABmvDolAAAAA1BMVEUAAACnej3aAAAAAXRSTlMA
-		QObYZgAAAAFiS0dEAIgFHUgAAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQffAhABMwYZr6qX
-		AAAAH0lEQVRo3u3BAQ0AAADCoPdPbQ43oAAAAAAAAAAAvg0hAAABfxmcpwAAAABJRU5ErkJggg==';
-
-	$not_found = base64_decode($not_found);
-
-	if (!ENABLE_LOCAL_CACHE)
-	{
-		img_header('png');
-		echo $not_found;
-		exit;
-	}
-
-	$format = 'png';
+	header('HTTP/1.1 404 Not Found', true, 404);
+	echo "The requested tile can not be found." . PHP_EOL;
+	exit;
 }
 else
 {
